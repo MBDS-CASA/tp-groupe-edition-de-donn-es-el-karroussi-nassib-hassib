@@ -160,7 +160,7 @@ const Etudiants = ({ data }) => {
 
 const Matieres = ({ data }) => {
   if (!data || data.length === 0) {
-    return <p style={{ textAlign: "center" }}>Aucune matière disponible.</p>;
+    return <p style={{ textAlign: "center" }}>Aucune matière disponible</p>;
   }
 
   const courses = Array.from(new Set(data.map((item) => item.course)));
