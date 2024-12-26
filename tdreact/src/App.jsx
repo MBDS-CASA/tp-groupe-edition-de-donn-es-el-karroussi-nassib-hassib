@@ -7,6 +7,12 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 
 function MainContent() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -95,96 +101,276 @@ function Menu({ onMenuChange }) {
   );
 }
 
-const Notes = ({ data }) => (
-  <TableContainer
-    component={Paper}
-    style={{ margin: "20px auto", width: "80%" }}
-  >
-    <Table>
-      <TableHead>
-        <TableRow>
-          <TableCell>ID</TableCell>
-          <TableCell>Nom de l'Étudiant</TableCell>
-          <TableCell>Matière</TableCell>
-          <TableCell>Date</TableCell>
-          <TableCell>Note</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {data.map((item) => (
-          <TableRow key={item.unique_id}>
-            <TableCell>{item.unique_id}</TableCell>
-            <TableCell>{`${item.student.firstname} ${item.student.lastname}`}</TableCell>
-            <TableCell>{item.course}</TableCell>
-            <TableCell>{item.date}</TableCell>
-            <TableCell>{item.grade}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  </TableContainer>
-);
+const Notes = ({ data, onAdd, onEdit, onDelete }) => {
+  const [open, setOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    unique_id: null,
+    course: "",
+    grade: "",
+    student: { firstname: "", lastname: "" },
+    date: "",
+  });
 
-// Composants de base pour les autres sections
-const Etudiants = ({ data }) => {
-  const students = Array.from(
-    new Map(data.map((item) => [item.student.id, item.student])).values()
-  );
+  const handleOpen = (item = null) => {
+    setFormData(
+      item || {
+        unique_id: null,
+        course: "",
+        grade: "",
+        student: { firstname: "", lastname: "" },
+        date: "",
+      }
+    );
+    setOpen(true);
+  };
+
+  const handleSave = () => {
+    if (formData.unique_id) {
+      onEdit(formData);
+    } else {
+      onAdd({ ...formData, unique_id: Date.now() });
+    }
+    setOpen(false);
+  };
 
   return (
-    <TableContainer
-      component={Paper}
-      style={{ margin: "20px auto", width: "80%" }}
-    >
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>ID</TableCell>
-            <TableCell>Prénom</TableCell>
-            <TableCell>Nom</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {students.map((student) => (
-            <TableRow key={student.id}>
-              <TableCell>{student.id}</TableCell>
-              <TableCell>{student.firstname}</TableCell>
-              <TableCell>{student.lastname}</TableCell>
+    <>
+      <Button onClick={() => handleOpen()}>Add Note</Button>
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogTitle>
+          {formData?.unique_id ? "Edit Note" : "Add Note"}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Matière"
+            fullWidth
+            value={formData.course}
+            onChange={(e) =>
+              setFormData({ ...formData, course: e.target.value })
+            }
+          />
+          <TextField
+            label="Note"
+            fullWidth
+            value={formData.grade}
+            onChange={(e) =>
+              setFormData({ ...formData, grade: e.target.value })
+            }
+          />
+          <TextField
+            label="Prénom"
+            fullWidth
+            value={formData.student.firstname}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                student: { ...formData.student, firstname: e.target.value },
+              })
+            }
+          />
+          <TextField
+            label="Nom"
+            fullWidth
+            value={formData.student.lastname}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                student: { ...formData.student, lastname: e.target.value },
+              })
+            }
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={handleSave}>Save</Button>
+        </DialogActions>
+      </Dialog>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>ID</TableCell>
+              <TableCell>Nom</TableCell>
+              <TableCell>Matière</TableCell>
+              <TableCell>Date</TableCell>
+              <TableCell>Note</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+          <TableBody>
+            {data.map((item) => (
+              <TableRow key={item.unique_id}>
+                <TableCell>{item.unique_id}</TableCell>
+                <TableCell>{`${item.student.firstname} ${item.student.lastname}`}</TableCell>
+                <TableCell>{item.course}</TableCell>
+                <TableCell>{item.date}</TableCell>
+                <TableCell>{item.grade}</TableCell>
+                <TableCell>
+                  <Button onClick={() => handleOpen(item)}>Edit</Button>
+                  <Button onClick={() => onDelete(item.unique_id)}>
+                    Delete
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
   );
 };
 
-const Matieres = ({ data }) => {
-  if (!data || data.length === 0) {
-    return <p style={{ textAlign: "center" }}>Aucune matière disponible</p>;
-  }
+const Etudiants = ({ data, onAdd, onEdit, onDelete }) => {
+  // Extract unique students
+  const students = Array.from(
+    new Map(
+      data
+        .filter((item) => item.student) // Ensure only items with valid student data are considered
+        .map((item) => [item.student.id, item.student])
+    ).values()
+  );
 
-  const courses = Array.from(new Set(data.map((item) => item.course)));
+  const [open, setOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    id: null,
+    firstname: "",
+    lastname: "",
+  });
+
+  const handleOpen = (item = null) => {
+    setFormData(item || { id: null, firstname: "", lastname: "" }); // Initialize formData
+    setOpen(true);
+  };
+
+  const handleSave = () => {
+    if (formData.id) {
+      onEdit(formData); // Edit existing student
+    } else {
+      onAdd({ ...formData, id: Date.now() }); // Add new student
+    }
+    setOpen(false);
+  };
 
   return (
-    <TableContainer
-      component={Paper}
-      style={{ margin: "20px auto", width: "80%" }}
-    >
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Matières</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {courses.map((course, index) => (
-            <TableRow key={index}>
-              <TableCell>{course}</TableCell>
+    <>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>ID</TableCell>
+              <TableCell>Prénom</TableCell>
+              <TableCell>Nom</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+          <TableBody>
+            {students.map((student) => (
+              <TableRow key={student.id}>
+                <TableCell>{student.id}</TableCell>
+                <TableCell>{student.firstname || "N/A"}</TableCell>
+                <TableCell>{student.lastname || "N/A"}</TableCell>
+                <TableCell>
+                  <Button onClick={() => handleOpen(student)}>Edit</Button>
+                  <Button onClick={() => onDelete(student.id)}>Delete</Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <Button onClick={() => handleOpen()}>Add Student</Button>
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogTitle>
+          {formData.id ? "Edit Student" : "Add Student"}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Prénom"
+            fullWidth
+            value={formData.firstname}
+            onChange={(e) =>
+              setFormData({ ...formData, firstname: e.target.value })
+            }
+          />
+          <TextField
+            label="Nom"
+            fullWidth
+            value={formData.lastname}
+            onChange={(e) =>
+              setFormData({ ...formData, lastname: e.target.value })
+            }
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={handleSave}>Save</Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+};
+
+const Matieres = ({ data, onAdd, onEdit, onDelete }) => {
+  const courses = Array.from(new Set(data.map((item) => item.course)));
+  const [open, setOpen] = useState(false);
+  const [formData, setFormData] = useState(null);
+
+  const handleOpen = (item = null) => {
+    setFormData(item || "");
+    setOpen(true);
+  };
+
+  const handleSave = () => {
+    if (formData) {
+      if (courses.includes(formData)) {
+        onEdit(formData);
+      } else {
+        onAdd(formData);
+      }
+    }
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Matières</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {courses.map((course, index) => (
+              <TableRow key={index}>
+                <TableCell>{course}</TableCell>
+                <TableCell>
+                  <Button onClick={() => handleOpen(course)}>Edit</Button>
+                  <Button onClick={() => onDelete(course)}>Delete</Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <Button onClick={() => handleOpen()}>Add Subject</Button>
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogTitle>{formData ? "Edit Subject" : "Add Subject"}</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Nom de la Matière"
+            fullWidth
+            value={formData}
+            onChange={(e) => setFormData(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={handleSave}>Save</Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 
@@ -217,14 +403,45 @@ function App() {
       );
   }, []);
 
+  const handleAdd = (newItem) => setData((prev) => [...prev, newItem]);
+  const handleEdit = (updatedItem) =>
+    setData((prev) =>
+      prev.map((item) =>
+        item.unique_id === updatedItem.unique_id ? updatedItem : item
+      )
+    );
+  const handleDelete = (id) =>
+    setData((prev) => prev.filter((item) => item.unique_id !== id));
+
   const renderContent = () => {
     switch (activeMenu) {
       case "Notes":
-        return <Notes data={data} />;
+        return (
+          <Notes
+            data={data}
+            onAdd={handleAdd}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        );
       case "Etudiants":
-        return <Etudiants data={data} />;
+        return (
+          <Etudiants
+            data={data}
+            onAdd={handleAdd}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        );
       case "Matières":
-        return <Matieres data={data} />;
+        return (
+          <Matieres
+            data={data}
+            onAdd={handleAdd}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        );
       case "A propos":
         return <APropos />;
       default:
@@ -237,7 +454,6 @@ function App() {
       <Menu onMenuChange={setActiveMenu} />
       <Header />
       <MainContent />
-
       <div>{renderContent()}</div>
       <Footer />
     </>
