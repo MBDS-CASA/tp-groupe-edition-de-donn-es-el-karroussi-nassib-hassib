@@ -45,7 +45,7 @@ function MainContent() {
 
 function Footer() {
   const currentYear = new Date().getFullYear();
-  const authorName = "Ayman EL KARROUSSI";
+  const authorName = "Ayman EL KARROUSSI , Omar NASSIB , Safae HASSIB";
 
   return (
     <p>
@@ -381,7 +381,7 @@ const APropos = () => (
       Cette application React a été développée pour illustrer les concepts
       fondamentaux de React.
     </p>
-    <p>Auteur : Ayman EL KARROUSSI. Merci de votre visite !</p>
+    <p>Auteur : Ayman EL KARROUSSI , Omar NASSIB , Safae HASSIB. Merci de votre visite !</p>
   </div>
 );
 
