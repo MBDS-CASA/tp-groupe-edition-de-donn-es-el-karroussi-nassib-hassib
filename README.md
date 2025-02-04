@@ -74,3 +74,24 @@ L'application sera disponible sur: `http://localhost:5173/`
 🎯 **Scolarité:** Vue des étudiants, cours et notes
 🎯 **Étudiant:** Visualisation de ses propres performances
 
+---
+
+## ❗ Problèmes Rencontrés et Justification du Retard
+
+Nous souhaitons expliquer les raisons qui ont conduit à un retard dans l’achèvement du projet:
+
+1️⃣ **Problème d'accès au repository de référence**
+   - Le repository **Student Management**, que nous avions forké lors du TP précédent, n’est plus accessible.
+   - Cela a rendu notre base de travail (le TP précédent) inutilisable, nous obligeant à repartir de zéro.
+
+2️⃣ **Suspension de notre compte Firestore**
+   - Notre compte **Firestore a été suspendu** pour des raisons indépendantes de notre contrôle.
+   - Ce problème a entravé la mise en place et les tests de l’authentification et de la gestion des données.
+
+Malgré ces défis, nous avons finalisé le projet .
+
+---
+
+**Cordialement,**  
+Ayman EL KARROUSSI - Omar NASSIB - Safaa HASSIB
+
